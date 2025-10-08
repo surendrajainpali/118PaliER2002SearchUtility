@@ -97,14 +97,19 @@ document.getElementById('searchBox').addEventListener('input', () => {
   }, 300);
 });
 
-ffunction filterData() {
-  const query = document.getElementById('searchBox').value.trim().toLowerCase();
+function normalize(str) {
+  return str ? str.replace(/\s+/g, ' ').trim().toLowerCase() : '';
+}
+
+function filterData() {
+  const query = normalize(document.getElementById('searchBox').value);
   filtered = data.filter(row =>
-    (row['Name'] && row['Name'].trim().toLowerCase().includes(query)) ||
-    (row['Relative Name'] && row['Relative Name'].trim().toLowerCase().includes(query)) ||
-    (row['EPIC'] && row['EPIC'].trim().toLowerCase().includes(query))
+    normalize(row['Name']).includes(query) ||
+    normalize(row['Relative Name']).includes(query) ||
+    normalize(row['EPIC']).includes(query)
   );
 }
+
 
 
 function renderPage() {
@@ -160,6 +165,7 @@ function updatePaginationControls() {
 
 </body>
 </html>
+
 
 
 
