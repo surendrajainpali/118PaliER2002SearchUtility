@@ -5,6 +5,7 @@
   <title>हिन्दी खोज</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
       font-family: 'Noto Sans Devanagari', sans-serif;
@@ -52,17 +53,19 @@
   <script>
     let data = [];
 
-    async function loadCSV() {
-      try {
-        const res = await fetch('data.csv');
-        if (!res.ok) throw new Error('CSV not found');
-        const text = await res.text();
-        const lines = text.trim().split('\n').filter(line => line.trim() !== '');
-        data = lines.map(row => row.split(','));
-        showResults('');
-      } catch (err) {
-        document.getElementById('error').textContent = 'डेटा लोड नहीं हुआ: ' + err.message;
-      }
+    function loadCSV() {
+      Papa.parse('data.csv', {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          data = results.data;
+          showResults('');
+        },
+        error: function(err) {
+          document.getElementById('error').textContent = 'डेटा लोड नहीं हुआ: ' + err.message;
+        }
+      });
     }
 
     function showResults(query) {
@@ -73,19 +76,20 @@
 
       // Add header row
       const header = document.createElement('tr');
-      data[0].forEach(col => {
+      Object.keys(data[0]).forEach(key => {
         const th = document.createElement('th');
-        th.textContent = col;
+        th.textContent = key;
         header.appendChild(th);
       });
       table.appendChild(header);
 
       // Add matching rows
       const lowerQuery = query.toLowerCase();
-      data.slice(1).forEach(row => {
-        if (row.join(' ').toLowerCase().includes(lowerQuery)) {
+      data.forEach(row => {
+        const rowText = Object.values(row).join(' ').toLowerCase();
+        if (rowText.includes(lowerQuery)) {
           const tr = document.createElement('tr');
-          row.forEach(cell => {
+          Object.values(row).forEach(cell => {
             const td = document.createElement('td');
             td.textContent = cell;
             tr.appendChild(td);
