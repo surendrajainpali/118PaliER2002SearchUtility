@@ -4,17 +4,18 @@
   <meta charset="UTF-8">
   <title>ER2002 Search Utility</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
     input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; }
+    tr:nth-child(even) { background-color: #fafafa; }
   </style>
 </head>
 <body>
 
-<h2>Search by Name, Relative Name, or EPIC</h2>
-<input type="text" id="searchBox" placeholder="Type to search..." oninput="searchData()" />
+<h2>🔍 खोजें नाम, संबंधी का नाम, या EPIC द्वारा</h2>
+<input type="text" id="searchBox" placeholder="यहाँ टाइप करें..." oninput="searchData()" />
 
 <table id="resultsTable">
   <thead>
@@ -36,23 +37,28 @@
 let data = [];
 
 Promise.all([
-  fetch('chunks/data1.json').then(r => r.json()),
-  fetch('chunks/data2.json').then(r => r.json()),
-  fetch('chunks/data3.json').then(r => r.json()),
-  fetch('chunks/data4.json').then(r => r.json()),
-  fetch('chunks/data5.json').then(r => r.json()),
-  fetch('chunks/data6.json').then(r => r.json()),
-  fetch('chunks/data7.json').then(r => r.json()),
-  fetch('chunks/data8.json').then(r => r.json())
+  fetch('chunks/data1.json').then(r => r.json()).catch(e => console.error('data1.json error', e)),
+  fetch('chunks/data2.json').then(r => r.json()).catch(e => console.error('data2.json error', e)),
+  fetch('chunks/data3.json').then(r => r.json()).catch(e => console.error('data3.json error', e)),
+  fetch('chunks/data4.json').then(r => r.json()).catch(e => console.error('data4.json error', e)),
+  fetch('chunks/data5.json').then(r => r.json()).catch(e => console.error('data5.json error', e)),
+  fetch('chunks/data6.json').then(r => r.json()).catch(e => console.error('data6.json error', e)),
+  fetch('chunks/data7.json').then(r => r.json()).catch(e => console.error('data7.json error', e)),
+  fetch('chunks/data8.json').then(r => r.json()).catch(e => console.error('data8.json error', e)),
+  fetch('chunks/data9.json').then(r => r.json()).catch(e => console.error('data9.json error', e))
 ]).then(chunks => {
   data = chunks.flat();
-  console.log(`? Loaded ${data.length} records`);
+  console.log(`✅ Loaded ${data.length} records`);
+}).catch(err => {
+  console.error('❌ Failed to load data:', err);
 });
 
 function searchData() {
   const query = document.getElementById('searchBox').value.toLowerCase();
   const tableBody = document.querySelector('#resultsTable tbody');
   tableBody.innerHTML = '';
+
+  if (!query.trim()) return;
 
   const filtered = data.filter(row =>
     (row['Name'] && row['Name'].toLowerCase().includes(query)) ||
