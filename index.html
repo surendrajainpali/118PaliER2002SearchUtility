@@ -97,14 +97,15 @@ document.getElementById('searchBox').addEventListener('input', () => {
   }, 300);
 });
 
-function filterData() {
+ffunction filterData() {
   const query = document.getElementById('searchBox').value.trim().toLowerCase();
   filtered = data.filter(row =>
-    (row['Name'] && row['Name'].toLowerCase().includes(query)) ||
-    (row['Relative Name'] && row['Relative Name'].toLowerCase().includes(query)) ||
-    (row['EPIC'] && row['EPIC'].toLowerCase().includes(query))
+    (row['Name'] && row['Name'].trim().toLowerCase().includes(query)) ||
+    (row['Relative Name'] && row['Relative Name'].trim().toLowerCase().includes(query)) ||
+    (row['EPIC'] && row['EPIC'].trim().toLowerCase().includes(query))
   );
 }
+
 
 function renderPage() {
   const tableBody = document.querySelector('#resultsTable tbody');
@@ -159,6 +160,7 @@ function updatePaginationControls() {
 
 </body>
 </html>
+
 
 
 
