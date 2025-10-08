@@ -98,7 +98,7 @@ document.getElementById('searchBox').addEventListener('input', () => {
 });
 
 function filterData() {
-  const query = document.getElementById('searchBox').value.toLowerCase();
+  const query = document.getElementById('searchBox').value.trim().toLowerCase();
   filtered = data.filter(row =>
     (row['Name'] && row['Name'].toLowerCase().includes(query)) ||
     (row['Relative Name'] && row['Relative Name'].toLowerCase().includes(query)) ||
@@ -159,6 +159,7 @@ function updatePaginationControls() {
 
 </body>
 </html>
+
 
 
 
