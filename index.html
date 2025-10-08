@@ -3,25 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <title>ER2002 Search Utility - AC 118 Pali</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    h2 {
-      background-color: #ffffff;
-      color: #0077cc; /* Optional: blue text */
-      padding: 12px;
-      border-radius: 6px;
-      text-align: center;
-      border: 1px solid #ccc;
+<style>
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    background-color: #ffffff;
+    color: #000000;
+  }
+  h2 {
+    background-color: #ffffff;
+    color: #0077cc;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid #ccc;
+  }
+  input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  th { background-color: #f2f2f2; }
+  tr:nth-child(even) { background-color: #fafafa; }
+  #status { font-size: 14px; color: #555; margin-bottom: 10px; }
+  #pagination { margin-top: 20px; text-align: center; }
+  #pagination button { padding: 6px 12px; margin: 0 5px; font-size: 14px; }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: #ffffff !important;
+      color: #000000 !important;
     }
-    input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    tr:nth-child(even) { background-color: #fafafa; }
-    #status { font-size: 14px; color: #555; margin-bottom: 10px; }
-    #pagination { margin-top: 20px; text-align: center; }
-    #pagination button { padding: 6px 12px; margin: 0 5px; font-size: 14px; }
-  </style>
+  }
+</style>
 </head>
 <body>
 
@@ -145,6 +159,7 @@ function updatePaginationControls() {
 
 </body>
 </html>
+
 
 
 
