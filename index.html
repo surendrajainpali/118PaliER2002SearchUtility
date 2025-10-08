@@ -45,7 +45,7 @@
 </head>
 <body>
   <h2>हिन्दी नाम खोजें</h2>
-  <input type="text" id="searchBox" placeholder="नाम लिखें...">
+  <input type="text" id="searchBox" placeholder="नाम, EPIC या कोई भी शब्द लिखें...">
   <table id="results"></table>
   <div id="error"></div>
 
@@ -57,7 +57,8 @@
         const res = await fetch('data.csv');
         if (!res.ok) throw new Error('CSV not found');
         const text = await res.text();
-        data = text.trim().split('\n').filter(line => line.trim() !== '').map(row => row.split(','));
+        const lines = text.trim().split('\n').filter(line => line.trim() !== '');
+        data = lines.map(row => row.split(','));
         showResults('');
       } catch (err) {
         document.getElementById('error').textContent = 'डेटा लोड नहीं हुआ: ' + err.message;
@@ -67,8 +68,22 @@
     function showResults(query) {
       const table = document.getElementById('results');
       table.innerHTML = '';
-      data.forEach(row => {
-        if (row.join(' ').includes(query)) {
+
+      if (data.length === 0) return;
+
+      // Add header row
+      const header = document.createElement('tr');
+      data[0].forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        header.appendChild(th);
+      });
+      table.appendChild(header);
+
+      // Add matching rows
+      const lowerQuery = query.toLowerCase();
+      data.slice(1).forEach(row => {
+        if (row.join(' ').toLowerCase().includes(lowerQuery)) {
           const tr = document.createElement('tr');
           row.forEach(cell => {
             const td = document.createElement('td');
@@ -88,4 +103,3 @@
   </script>
 </body>
 </html>
-
