@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>ER2002 Search Utility</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+<h2>Search by Name, Relative Name, or EPIC</h2>
+<input type="text" id="searchBox" placeholder="Type to search..." oninput="searchData()" />
+
+<table id="resultsTable">
+  <thead>
+    <tr>
+      <th>Old AC No.</th>
+      <th>Part No.</th>
+      <th>S. NO.</th>
+      <th>H. NO.</th>
+      <th>Name</th>
+      <th>Relative Name</th>
+      <th>Age</th>
+      <th>EPIC</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+let data = [];
+
+Promise.all([
+  fetch('chunks/data1.json').then(r => r.json()),
+  fetch('chunks/data2.json').then(r => r.json()),
+  fetch('chunks/data3.json').then(r => r.json()),
+  fetch('chunks/data4.json').then(r => r.json()),
+  fetch('chunks/data5.json').then(r => r.json()),
+  fetch('chunks/data6.json').then(r => r.json()),
+  fetch('chunks/data7.json').then(r => r.json()),
+  fetch('chunks/data8.json').then(r => r.json())
+]).then(chunks => {
+  data = chunks.flat();
+  console.log(`? Loaded ${data.length} records`);
+});
+
+function searchData() {
+  const query = document.getElementById('searchBox').value.toLowerCase();
+  const tableBody = document.querySelector('#resultsTable tbody');
+  tableBody.innerHTML = '';
+
+  const filtered = data.filter(row =>
+    (row['Name'] && row['Name'].toLowerCase().includes(query)) ||
+    (row['Relative Name'] && row['Relative Name'].toLowerCase().includes(query)) ||
+    (row['EPIC'] && row['EPIC'].toLowerCase().includes(query))
+  );
+
+  filtered.forEach(row => {
+    const tr = document.createElement('tr');
+    ['Old AC No.', 'Part No.', 'S. NO.', 'H. NO.', 'Name', 'Relative Name', 'Age', 'EPIC'].forEach(key => {
+      const td = document.createElement('td');
+      td.textContent = row[key] || '';
+      tr.appendChild(td);
+    });
+    tableBody.appendChild(tr);
+  });
+}
+</script>
+
+</body>
+</html>
