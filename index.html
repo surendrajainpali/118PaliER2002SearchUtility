@@ -10,12 +10,14 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; }
     tr:nth-child(even) { background-color: #fafafa; }
+    #status { font-size: 14px; color: #555; margin-bottom: 10px; }
   </style>
 </head>
 <body>
 
 <h2>🔍 खोजें नाम, संबंधी का नाम, या EPIC द्वारा</h2>
-<input type="text" id="searchBox" placeholder="यहाँ टाइप करें..." oninput="searchData()" />
+<p id="status">डेटा लोड हो रहा है...</p>
+<input type="text" id="searchBox" placeholder="यहाँ टाइप करें..." disabled />
 
 <table id="resultsTable">
   <thead>
@@ -35,22 +37,33 @@
 
 <script>
 let data = [];
+let debounceTimer;
 
-Promise.all([
-  fetch('chunks/data1.json').then(r => r.json()).catch(e => console.error('data1.json error', e)),
-  fetch('chunks/data2.json').then(r => r.json()).catch(e => console.error('data2.json error', e)),
-  fetch('chunks/data3.json').then(r => r.json()).catch(e => console.error('data3.json error', e)),
-  fetch('chunks/data4.json').then(r => r.json()).catch(e => console.error('data4.json error', e)),
-  fetch('chunks/data5.json').then(r => r.json()).catch(e => console.error('data5.json error', e)),
-  fetch('chunks/data6.json').then(r => r.json()).catch(e => console.error('data6.json error', e)),
-  fetch('chunks/data7.json').then(r => r.json()).catch(e => console.error('data7.json error', e)),
-  fetch('chunks/data8.json').then(r => r.json()).catch(e => console.error('data8.json error', e)),
-  fetch('chunks/data9.json').then(r => r.json()).catch(e => console.error('data9.json error', e))
-]).then(chunks => {
-  data = chunks.flat();
+const chunkPaths = Array.from({ length: 9 }, (_, i) => `chunks/data${i + 1}.json`);
+
+Promise.allSettled(
+  chunkPaths.map(path =>
+    fetch(path)
+      .then(r => r.ok ? r.json() : [])
+      .catch(() => [])
+  )
+).then(results => {
+  data = results
+    .filter(result => result.status === 'fulfilled')
+    .flatMap(result => result.value);
+  document.getElementById('searchBox').disabled = false;
+  document.getElementById('status').textContent = `✅ कुल ${data.length} रिकॉर्ड लोड हुए`;
   console.log(`✅ Loaded ${data.length} records`);
 }).catch(err => {
   console.error('❌ Failed to load data:', err);
+  document.getElementById('searchBox').disabled = false;
+  document.getElementById('status').textContent = '⚠️ डेटा लोड करने में समस्या आई';
+});
+
+// Debounced input listener
+document.getElementById('searchBox').addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(searchData, 300);
 });
 
 function searchData() {
@@ -66,7 +79,7 @@ function searchData() {
     (row['EPIC'] && row['EPIC'].toLowerCase().includes(query))
   );
 
-  filtered.forEach(row => {
+  filtered.slice(0, 100).forEach(row => {
     const tr = document.createElement('tr');
     ['Old AC No.', 'Part No.', 'S. NO.', 'H. NO.', 'Name', 'Relative Name', 'Age', 'EPIC'].forEach(key => {
       const td = document.createElement('td');
