@@ -109,119 +109,132 @@
 <div id="pagination"></div>
 
 <script>
-let data = [];
-let filtered = [];
-let currentPage = 1;
-const resultsPerPage = 20;
-
-const chunkPaths = Array.from({ length: 9 }, (_, i) => `chunks/data${i + 1}.json`);
-
-Promise.allSettled(
-  chunkPaths.map(path =>
-    fetch(path)
-      .then(r => r.ok ? r.json() : [])
-      .catch(() => [])
-  )
-).then(results => {
-  data = results
-    .filter(result => result.status === 'fulfilled')
-    .flatMap(result => result.value);
-  document.getElementById('searchBox').disabled = false;
-  document.getElementById('status').textContent = `✅ कुल ${data.length} रिकॉर्ड लोड हुए`;
-  console.log(`✅ Loaded ${data.length} records`);
-}).catch(err => {
-  console.error('❌ Failed to load data:', err);
-  document.getElementById('searchBox').disabled = false;
-  document.getElementById('status').textContent = '⚠️ डेटा लोड करने में समस्या आई';
-});
-
-document.getElementById('searchBox').addEventListener('input', () => {
-  clearTimeout(window.debounceTimer);
-  window.debounceTimer = setTimeout(() => {
-    currentPage = 1;
-    filterData();
-    renderPage();
-  }, 300);
-});
-
-function normalize(str) {
-  return str ? str.replace(/\s+/g, ' ').trim().toLowerCase() : '';
-}
-
-function filterData() {
-  const query = normalize(document.getElementById('searchBox').value);
-  filtered = data.filter(row =>
-    normalize(row['Name']).includes(query) ||
-    normalize(row['Relative Name']).includes(query) ||
-    normalize(row['EPIC']).includes(query)
-  );
-}
-
-
-
-function renderPage() {
+  const statusEl = document.getElementById('status');
+  const searchBox = document.getElementById('searchBox');
   const tableBody = document.querySelector('#resultsTable tbody');
-  tableBody.innerHTML = '';
+  const pagination = document.getElementById('pagination');
 
-  const start = (currentPage - 1) * resultsPerPage;
-  const end = start + resultsPerPage;
-  const pageData = filtered.slice(start, end);
+  let data = [];
+  let filtered = [];
+  let currentPage = 1;
+  const resultsPerPage = 20;
 
-  pageData.forEach(row => {
-    const tr = document.createElement('tr');
-    ['Old AC No.', 'Part No.', 'S. NO.', 'H. NO.', 'Name', 'Relative Name', 'Age', 'EPIC'].forEach(key => {
-      const td = document.createElement('td');
-      td.textContent = row[key] || '';
-      tr.appendChild(td);
-    });
-    tableBody.appendChild(tr);
+  const chunkPaths = Array.from({ length: 9 }, (_, i) => `chunks/data${i + 1}.json`);
+
+  // Show loading message in red
+  statusEl.textContent = 'डेटा लोड हो रहा है...';
+  statusEl.classList.remove('loaded');
+  statusEl.classList.add('loading');
+
+  // Load all chunks
+  Promise.allSettled(
+    chunkPaths.map(path =>
+      fetch(path)
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+    )
+  ).then(results => {
+    data = results
+      .filter(result => result.status === 'fulfilled')
+      .flatMap(result => result.value);
+
+    filtered = data;
+    searchBox.disabled = false;
+    renderPage();
+
+    // Show loaded message in dark green
+    statusEl.textContent = `✅ कुल ${data.length} रिकॉर्ड लोड हुए`;
+    statusEl.classList.remove('loading');
+    statusEl.classList.add('loaded');
+  }).catch(err => {
+    console.error('❌ Failed to load data:', err);
+    searchBox.disabled = false;
+    statusEl.textContent = '⚠️ डेटा लोड करने में समस्या आई';
+    statusEl.classList.remove('loading', 'loaded');
   });
 
-  updatePaginationControls();
-}
+  // Normalize input for search
+  function normalize(str) {
+    return str ? str.replace(/\s+/g, ' ').trim().toLowerCase() : '';
+  }
 
-function updatePaginationControls() {
-  const controls = document.getElementById('pagination');
-  controls.innerHTML = '';
+  // Filter data based on input
+  function filterData() {
+    const query = normalize(searchBox.value);
+    filtered = data.filter(row =>
+      normalize(row['Name']).includes(query) ||
+      normalize(row['Relative Name']).includes(query) ||
+      normalize(row['EPIC']).includes(query)
+    );
+  }
 
-  if (filtered.length <= resultsPerPage) return;
+  // Render current page
+  function renderPage() {
+    tableBody.innerHTML = '';
+    const start = (currentPage - 1) * resultsPerPage;
+    const end = start + resultsPerPage;
+    const pageData = filtered.slice(start, end);
 
-  const totalPages = Math.ceil(filtered.length / resultsPerPage);
+    if (pageData.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="8">कोई परिणाम नहीं मिला</td></tr>';
+      pagination.innerHTML = '';
+      return;
+    }
 
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '⬅️ पिछला';
-  prevBtn.disabled = currentPage === 1;
-  prevBtn.onclick = () => {
-    currentPage--;
-    renderPage();
-  };
+    pageData.forEach(row => {
+      const tr = document.createElement('tr');
+      ['Old AC No.', 'Part No.', 'S. NO.', 'H. NO.', 'Name', 'Relative Name', 'Age', 'EPIC'].forEach(key => {
+        const td = document.createElement('td');
+        td.textContent = row[key] || '';
+        tr.appendChild(td);
+      });
+      tableBody.appendChild(tr);
+    });
 
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = '➡️ अगला';
-  nextBtn.disabled = currentPage === totalPages;
-  nextBtn.onclick = () => {
-    currentPage++;
-    renderPage();
-  };
+    updatePaginationControls();
+  }
 
-  controls.appendChild(prevBtn);
-  controls.appendChild(document.createTextNode(` पेज ${currentPage} / ${totalPages} `));
-  controls.appendChild(nextBtn);
-}
-const statusEl = document.getElementById('status');
+  // Pagination buttons
+  function updatePaginationControls() {
+    pagination.innerHTML = '';
+    const totalPages = Math.ceil(filtered.length / resultsPerPage);
+    if (totalPages <= 1) return;
 
-// While loading
-statusEl.textContent = 'डेटा लोड हो रहा है...';
-statusEl.className = 'loading';
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '⬅️ पिछला';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+      currentPage--;
+      renderPage();
+    };
 
-// After loading
-statusEl.textContent = `✅ कुल ${data.length} रिकॉर्ड लोड हुए`;
-statusEl.className = 'loaded';
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '➡️ अगला';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+      currentPage++;
+      renderPage();
+    };
 
+    pagination.appendChild(prevBtn);
+    pagination.appendChild(document.createTextNode(` पेज ${currentPage} / ${totalPages} `));
+    pagination.appendChild(nextBtn);
+  }
+
+  // Debounced search
+  searchBox.addEventListener('input', () => {
+    clearTimeout(window.debounceTimer);
+    window.debounceTimer = setTimeout(() => {
+      currentPage = 1;
+      filterData();
+      renderPage();
+    }, 300);
+  });
 </script>
 
 </body>
 </html>
+
 
 
 
