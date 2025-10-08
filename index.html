@@ -20,4 +20,71 @@
       padding: 10px;
       font-size: 18px;
       margin-bottom: 20px;
-      border
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    #error {
+      color: red;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>हिन्दी नाम खोजें</h2>
+  <input type="text" id="searchBox" placeholder="नाम लिखें...">
+  <table id="results"></table>
+  <div id="error"></div>
+
+  <script>
+    let data = [];
+
+    async function loadCSV() {
+      try {
+        const res = await fetch('data.csv');
+        if (!res.ok) throw new Error('CSV not found');
+        const text = await res.text();
+        data = text.trim().split('\n').map(row => row.split(','));
+        showResults('');
+      } catch (err) {
+        document.getElementById('error').textContent = 'डेटा लोड नहीं हुआ: ' + err.message;
+      }
+    }
+
+    function showResults(query) {
+      const table = document.getElementById('results');
+      table.innerHTML = '';
+      data.forEach(row => {
+        if (row.join(' ').includes(query)) {
+          const tr = document.createElement('tr');
+          row.forEach(cell => {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+          table.appendChild(tr);
+        }
+      });
+    }
+
+    document.getElementById('searchBox').addEventListener('input', e => {
+      showResults(e.target.value.trim());
+    });
+
+    loadCSV();
+  </script>
+</body>
+</html>
