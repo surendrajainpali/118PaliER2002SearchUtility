@@ -56,11 +56,11 @@
     font-weight: bold;
   }
 
-  .loading {
+  #status.loading {
     color: #cc0000; /* 🔴 Red for "डेटा लोड हो रहा है..." */
   }
 
-  .loaded {
+  #status.loaded {
     color: #006400; /* 🟢 Dark green for "कुल रिकॉर्ड लोड हुए" */
   }
 
@@ -82,6 +82,7 @@
     }
   }
 </style>
+
 </head>
 <body>
 
@@ -207,10 +208,21 @@ function updatePaginationControls() {
   controls.appendChild(document.createTextNode(` पेज ${currentPage} / ${totalPages} `));
   controls.appendChild(nextBtn);
 }
+const statusEl = document.getElementById('status');
+
+// While loading
+statusEl.textContent = 'डेटा लोड हो रहा है...';
+statusEl.className = 'loading';
+
+// After loading
+statusEl.textContent = `✅ कुल ${data.length} रिकॉर्ड लोड हुए`;
+statusEl.className = 'loaded';
+
 </script>
 
 </body>
 </html>
+
 
 
 
