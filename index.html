@@ -5,12 +5,14 @@
   <title>ER2002 Search Utility</title>
   <style>
     body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    input { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; }
     tr:nth-child(even) { background-color: #fafafa; }
     #status { font-size: 14px; color: #555; margin-bottom: 10px; }
+    #pagination { margin-top: 20px; text-align: center; }
+    #pagination button { padding: 6px 12px; margin: 0 5px; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -35,9 +37,13 @@
   <tbody></tbody>
 </table>
 
+<div id="pagination"></div>
+
 <script>
 let data = [];
-let debounceTimer;
+let filtered = [];
+let currentPage = 1;
+const resultsPerPage = 20;
 
 const chunkPaths = Array.from({ length: 9 }, (_, i) => `chunks/data${i + 1}.json`);
 
@@ -60,26 +66,33 @@ Promise.allSettled(
   document.getElementById('status').textContent = '⚠️ डेटा लोड करने में समस्या आई';
 });
 
-// Debounced input listener
 document.getElementById('searchBox').addEventListener('input', () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(searchData, 300);
+  clearTimeout(window.debounceTimer);
+  window.debounceTimer = setTimeout(() => {
+    currentPage = 1;
+    filterData();
+    renderPage();
+  }, 300);
 });
 
-function searchData() {
+function filterData() {
   const query = document.getElementById('searchBox').value.toLowerCase();
-  const tableBody = document.querySelector('#resultsTable tbody');
-  tableBody.innerHTML = '';
-
-  if (!query.trim()) return;
-
-  const filtered = data.filter(row =>
+  filtered = data.filter(row =>
     (row['Name'] && row['Name'].toLowerCase().includes(query)) ||
     (row['Relative Name'] && row['Relative Name'].toLowerCase().includes(query)) ||
     (row['EPIC'] && row['EPIC'].toLowerCase().includes(query))
   );
+}
 
-  filtered.slice(0, 100).forEach(row => {
+function renderPage() {
+  const tableBody = document.querySelector('#resultsTable tbody');
+  tableBody.innerHTML = '';
+
+  const start = (currentPage - 1) * resultsPerPage;
+  const end = start + resultsPerPage;
+  const pageData = filtered.slice(start, end);
+
+  pageData.forEach(row => {
     const tr = document.createElement('tr');
     ['Old AC No.', 'Part No.', 'S. NO.', 'H. NO.', 'Name', 'Relative Name', 'Age', 'EPIC'].forEach(key => {
       const td = document.createElement('td');
@@ -88,6 +101,37 @@ function searchData() {
     });
     tableBody.appendChild(tr);
   });
+
+  updatePaginationControls();
+}
+
+function updatePaginationControls() {
+  const controls = document.getElementById('pagination');
+  controls.innerHTML = '';
+
+  if (filtered.length <= resultsPerPage) return;
+
+  const totalPages = Math.ceil(filtered.length / resultsPerPage);
+
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '⬅️ पिछला';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => {
+    currentPage--;
+    renderPage();
+  };
+
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '➡️ अगला';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => {
+    currentPage++;
+    renderPage();
+  };
+
+  controls.appendChild(prevBtn);
+  controls.appendChild(document.createTextNode(` पेज ${currentPage} / ${totalPages} `));
+  controls.appendChild(nextBtn);
 }
 </script>
 
