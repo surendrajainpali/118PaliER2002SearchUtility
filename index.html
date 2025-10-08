@@ -57,7 +57,7 @@
         const res = await fetch('data.csv');
         if (!res.ok) throw new Error('CSV not found');
         const text = await res.text();
-        data = text.trim().split('\n').map(row => row.split(','));
+        data = text.trim().split('\n').filter(line => line.trim() !== '').map(row => row.split(','));
         showResults('');
       } catch (err) {
         document.getElementById('error').textContent = 'डेटा लोड नहीं हुआ: ' + err.message;
@@ -88,3 +88,4 @@
   </script>
 </body>
 </html>
+
